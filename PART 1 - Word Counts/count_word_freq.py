@@ -11,15 +11,15 @@ spark = SparkSession.builder.appName("KafkaWordCount").getOrCreate()
 
 consumer = KafkaConsumer(
     "topic1",
-    bootstrap_servers="localhost:9092",
-    auto_offset_reset="earliest",
-    enable_auto_commit=True,
-    value_deserializer=lambda v: v.decode("utf-8")
+    bootstrap_servers = "localhost:9092",
+    auto_offset_reset = "earliest",
+    enable_auto_commit = True,
+    value_deserializer = lambda v: v.decode("utf-8")
 )
 
 producer = KafkaProducer(
-    bootstrap_servers="localhost:9092",
-    value_serializer=lambda v: v.encode("utf-8")
+    bootstrap_servers = "localhost:9092",
+    value_serializer = lambda v: v.encode("utf-8")
 )
 
 # seconds after which the word counts compile
@@ -36,7 +36,7 @@ try:
         if (datetime.now() - start_time).total_seconds() >= COUNT_INTERVAL:
             rdd = spark.sparkContext.parallelize(data)
             word_counts = rdd.map(lambda x: (x, 1)).reduceByKey(lambda x, y: x + y).collect()
-            producer.send("topic2", value=json.dumps(word_counts))
+            producer.send("topic2", value = json.dumps(word_counts))
             producer.flush()
             start_time = datetime.now()
             data = []
