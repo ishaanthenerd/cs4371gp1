@@ -6,6 +6,7 @@
 import json
 from kafka import KafkaConsumer, KafkaProducer
 from pyspark.sql import SparkSession
+from datetime import datetime
 
 spark = SparkSession.builder.appName("KafkaWordCount").getOrCreate()
 
@@ -23,7 +24,7 @@ producer = KafkaProducer(
 )
 
 # seconds after which the word counts compile
-COUNT_INTERVAL = 5
+COUNT_INTERVAL = 10
 
 try:
     start_time = datetime.now()

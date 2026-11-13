@@ -4,6 +4,8 @@
 import os
 import finnhub
 from kafka import KafkaProducer
+import random as rd
+from time import sleep
 
 API_KEY = os.getenv('API_KEY')
 finnhub_client = finnhub.Client(api_key = API_KEY)
@@ -20,7 +22,7 @@ def extract_headline():
     return random_response.get("headline")
 
 # seconds between consecutive headline extractions
-EXTRACT_INTERVAL = 0.1
+EXTRACT_INTERVAL = 5
 
 try:
     while True:

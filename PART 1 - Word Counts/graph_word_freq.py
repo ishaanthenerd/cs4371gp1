@@ -84,6 +84,7 @@ try:
     while True:
         for message in consumer:
             j = message.value
+            print(f"Received: {j}")
             word_counts = json.loads(j)
             word_counts = sorted(word_counts, key = lambda x: x[1], reverse = True)[:MAX_WORDS]
             convert_dict(word_counts)
