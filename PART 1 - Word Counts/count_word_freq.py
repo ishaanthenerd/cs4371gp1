@@ -10,8 +10,10 @@ from pyspark.sql import SparkSession
 from datetime import datetime
 
 class UTF8Deserializer(Deserializer):
-    def deserialize(self, value):
-        return value.decode("utf-8")
+    def deserialize(self, topic, headers = None, data = None):
+        if data is None:
+            data = headers
+        return data.decode("utf-8") if data is not None else None
 
 consumer = KafkaConsumer(
     "topic1",
