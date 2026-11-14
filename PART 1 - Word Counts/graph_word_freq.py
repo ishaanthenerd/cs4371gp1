@@ -87,15 +87,25 @@ def create_kibana_bar_plot(index = INDEX):
     result = client.visualizations.create(data = chart)
     print("Visualization created, ID =", result.body["id"])
 
+chart_created = False
+
 try:
     while True:
         for message in consumer:
             j = message.value
             print(f"Received: {j}")
             word_counts = json.loads(j)
-            word_counts = sorted(word_counts, key = lambda x: x[1], reverse = True)[:MAX_WORDS]
+            word_counts = dict(
+                sorted(
+                    word_counts.items(),
+                    key=lambda x: x[1],
+                    reverse=True
+                )[:MAX_WORDS]
+            )
             convert_dict(word_counts)
-            create_kibana_bar_plot()
+            if not chart_created:
+                create_kibana_bar_plot()
+                chart_created = True
 except KeyboardInterrupt:
     print("\nStopping consumer and Kibana.")
 finally:
