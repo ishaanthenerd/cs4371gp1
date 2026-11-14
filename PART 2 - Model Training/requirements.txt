@@ -1,0 +1,4 @@
+# Matches sparkVersion in models/ag_news_classifier/metadata/part-00000.
+pyspark==3.5.8
+numpy>=1.24,<2
+datasets>=3,<4
