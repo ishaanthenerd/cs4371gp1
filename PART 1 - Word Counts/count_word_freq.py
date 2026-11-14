@@ -10,7 +10,7 @@ from pyspark.sql import SparkSession
 from datetime import datetime
 
 class UTF8Deserializer(Deserializer):
-    def __call__(self, value):
+    def deserialize(self, value):
         return value.decode("utf-8")
 
 consumer = KafkaConsumer(
