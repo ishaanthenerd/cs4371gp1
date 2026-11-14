@@ -43,6 +43,7 @@ try:
             rdd = spark.sparkContext.parallelize(data)
             word_counts = rdd.map(lambda x: (x, 1)).reduceByKey(lambda x, y: x + y).collect()
             producer.send("topic2", value = json.dumps(word_counts))
+            print(f"Sent: {json.dumps(word_counts)}")
             producer.flush()
             start_time = datetime.now()
             data = []
