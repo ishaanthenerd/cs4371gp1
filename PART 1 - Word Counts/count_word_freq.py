@@ -5,23 +5,28 @@
 
 import json
 from kafka import KafkaConsumer, KafkaProducer
+from kafka.serializer import Deserializer
 from pyspark.sql import SparkSession
 from datetime import datetime
 
-spark = SparkSession.builder.appName("KafkaWordCount").getOrCreate()
+class UTF8Deserializer(Deserializer):
+    def __call__(self, value):
+        return value.decode("utf-8")
 
 consumer = KafkaConsumer(
     "topic1",
     bootstrap_servers = "localhost:9092",
     auto_offset_reset = "earliest",
     enable_auto_commit = True,
-    value_deserializer = lambda v: v.decode("utf-8")
+    value_deserializer = UTF8Deserializer()
 )
 
 producer = KafkaProducer(
     bootstrap_servers = "localhost:9092",
     value_serializer = lambda v: v.encode("utf-8")
 )
+
+spark = SparkSession.builder.appName("KafkaWordCount").getOrCreate()
 
 # seconds after which the word counts compile
 COUNT_INTERVAL = 10
