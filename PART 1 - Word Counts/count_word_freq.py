@@ -5,15 +5,8 @@
 
 import json
 from kafka import KafkaConsumer, KafkaProducer
-from kafka.serializer import Deserializer
 from pyspark.sql import SparkSession
 from datetime import datetime
-
-class UTF8Deserializer(Deserializer):
-    def deserialize(self, topic, headers = None, data = None):
-        if data is None:
-            data = headers
-        return data.decode("utf-8") if data is not None else None
 
 consumer = KafkaConsumer(
     "topic1",
@@ -36,6 +29,54 @@ COUNT_INTERVAL = 10
 try:
     start_time = datetime.now()
     data = []
+
+    while True:
+        # Wait at most 1 second for messages
+        records = consumer.poll(timeout_ms=1000)
+
+        for messages in records.values():
+            for message in messages:
+                word = message.value
+                print(f"Received: {word}")
+                data.append(word)
+
+        # Check whether the counting interval has elapsed
+        if (datetime.now() - start_time).total_seconds() >= COUNT_INTERVAL:
+
+            if data:
+                rdd = spark.sparkContext.parallelize(data)
+
+                word_counts = (
+                    rdd.map(lambda x: (x, 1))
+                       .reduceByKey(lambda x, y: x + y)
+                       .collect()
+                )
+
+                # Convert list of tuples into a dictionary
+                word_counts = dict(word_counts)
+
+                producer.send(
+                    "topic2",
+                    value=json.dumps(word_counts)
+                )
+
+                print(f"Sent: {json.dumps(word_counts)}")
+                producer.flush()
+
+            start_time = datetime.now()
+            data = []
+
+except KeyboardInterrupt:
+    print("\nStopping consumer, producer, and Spark.")
+finally:
+    consumer.close()
+    producer.close()
+    spark.stop()
+
+'''
+try:
+    start_time = datetime.now()
+    data = []
     while True:
         for message in consumer:
             word = message.value
@@ -55,3 +96,4 @@ finally:
     consumer.close()
     producer.close()
     spark.stop()
+'''
