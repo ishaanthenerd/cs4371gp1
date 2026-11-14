@@ -3,15 +3,22 @@
 
 import json
 from kafka import KafkaConsumer
+from kafka.serializer import Deserializer
 from elasticsearch import Elasticsearch, helpers
 from kibana import Kibana
+
+class UTF8Deserializer(Deserializer):
+    def deserialize(self, topic, headers = None, data = None):
+        if data is None:
+            data = headers
+        return data.decode("utf-8") if data is not None else None
 
 consumer = KafkaConsumer(
     "topic2",
     bootstrap_servers = "localhost:9092",
     auto_offset_reset = "earliest",
     enable_auto_commit = True,
-    value_deserializer = lambda v: v.decode("utf-8")
+    value_deserializer = UTF8Deserializer()
 )
 
 es = Elasticsearch("http://localhost:9200")
