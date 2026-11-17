@@ -25,10 +25,16 @@ consumer = KafkaConsumer(
 ES_PASSWORD = os.getenv('ES_PASSWORD')
 es = Elasticsearch(
     "https://localhost:9200",
-    ca_certs="/etc/elasticsearch/certs/http_ca.crt",
+    ca_certs="/home/ishaanshiveshhome1/certs/http_ca.crt",
     basic_auth=("elastic", ES_PASSWORD)
 )
-client = Kibana("http://localhost:5601")
+# debug
+print("Elasticsearch connected:", es.info())
+
+client = Kibana(
+    "http://localhost:5601",
+    basic_auth=("elastic", ES_PASSWORD)
+)
 INDEX = "converted-data"
 MAX_WORDS = 10
 
