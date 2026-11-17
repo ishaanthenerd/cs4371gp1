@@ -6,61 +6,65 @@ from pyspark.ml import PipelineModel
 from pyspark.sql.functions import col
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--model", required=True)
-args = parser.parse_args()
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model", required=True)
+    args = parser.parse_args()
 
-spark = (
+    spark = (
 
-    SparkSession.builder
-    .master("local[2]")
-    .appName("CS4371-Model-Test")
-    .getOrCreate()
+        SparkSession.builder
+        .appName("CS4371-Model-Test")
+        .getOrCreate()
 
-)
+    )
 
-spark.sparkContext.setLogLevel("ERROR")
+    spark.sparkContext.setLogLevel("ERROR")
 
-try:
-    model = PipelineModel.load(args.model)
+    try:
+        model = PipelineModel.load(args.model)
 
-    examples = [
+        examples = [
 
-        ("The president met with world leaders to discuss peace.",),
-        ("The football team won the championship game.",),
-        ("Company stocks rose after record quarterly earnings.",),
-        ("Scientists developed a new artificial intelligence chip.",)
+            ("The president met with world leaders to discuss peace.",),
+            ("The football team won the championship game.",),
+            ("Company stocks rose after record quarterly earnings.",),
+            ("Scientists developed a new artificial intelligence chip.",)
     
-    ]
+        ]
 
-    df = spark.createDataFrame(examples, ["text"])
+        df = spark.createDataFrame(examples, ["text"])
 
-    predictions = model.transform(df)
+        predictions = model.transform(df)
 
-    labels = {
+        labels = {
 
-        0: "World",
-        1: "Sports",
-        2: "Business",
-        3: "Sci/Tech"
+            0: "World",
+            1: "Sports",
+            2: "Business",
+            3: "Sci/Tech"
    
-    }
+        }
 
-    for row in predictions.select(
+        for row in predictions.select(
 
-        "text", "prediction", "probability"
+            "text", "prediction", "probability"
     
-    ).collect():
+        ).collect():
         
-        predicted_label = int(row["prediction"])
-        confidence = float(
-            row["probability"][predicted_label]
+            predicted_label = int(row["prediction"])
+            confidence = float(
+                row["probability"][predicted_label]
        
-        )
+            )
 
-        print("\nArticle:", row["text"])
-        print("Prediction:", labels[predicted_label])
-        print(f"Probability: {confidence:.2%}")
+            print("\nArticle:", row["text"])
+            print("Prediction:", labels[predicted_label])
+            print(f"Probability: {confidence:.2%}")
 
-finally:
-    spark.stop()
+    finally:
+        spark.stop()
+
+
+if __name__ == "__main__":
+    main()
