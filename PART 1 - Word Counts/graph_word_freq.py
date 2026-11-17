@@ -1,6 +1,7 @@
 # PIPELINE
 # Kafka Topic2 > Kibana > Generate Graphs
 
+import os
 import json
 from kafka import KafkaConsumer
 from kafka.serializer import Deserializer
