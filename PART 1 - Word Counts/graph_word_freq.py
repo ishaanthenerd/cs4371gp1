@@ -38,31 +38,44 @@ client = Kibana(
 INDEX = "converted-data"
 MAX_WORDS = 10
 
-def convert_dict(word_counts, index = INDEX):
-    if not es.indices.exists(index = index):
+def convert_dict(word_counts, index=INDEX):
+    if not es.indices.exists(index=index):
         es.indices.create(
-            index = index,
-            mappings = {
+            index=index,
+            mappings={
                 "properties": {
                     "category": {"type": "keyword"},
                     "value": {"type": "integer"}
                 }
             }
         )
-    documents = [
-        {
-            "_index": index,
-            "_id": category,
-            "_source": {
+
+    for category, value in word_counts.items():
+        es.update(
+            index=index,
+            id=category,
+            script={
+                "source": """
+                    if (ctx.op == 'create') {
+                        ctx._source.category = params.category;
+                        ctx._source.value = params.value;
+                    } else {
+                        ctx._source.value += params.value;
+                    }
+                """,
+                "params": {
+                    "category": category,
+                    "value": value
+                }
+            },
+            upsert={
                 "category": category,
                 "value": value
             }
-        }
-        for category, value in word_counts.items()
-    ]
-    helpers.bulk(es, documents)
-    es.indices.refresh(index = index)
-    print(f"Indexed {len(documents)} documents into {index}")
+        )
+
+    es.indices.refresh(index=index)
+    print(f"Updated {len(word_counts)} word counts in {index}")
 
 # takes in dict: str -> int, outputs the bar plot using Kibana
 def create_kibana_bar_plot(index = INDEX):
