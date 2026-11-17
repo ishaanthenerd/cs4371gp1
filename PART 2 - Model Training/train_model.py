@@ -15,100 +15,108 @@ from pyspark.ml.classification import LogisticRegression
 
 
 # file paths
-parser = argparse.ArgumentParser()
-parser.add_argument("--data", required=True)
-parser.add_argument("--model", required=True)
-args = parser.parse_args()
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--data", required=True)
+    parser.add_argument("--model", required=True)
+    parser.add_argument("--overwrite", action="store_true")
+    args = parser.parse_args()
 
-spark = (
+    spark = (
 
-    SparkSession.builder
-    .master("local[2]")
-    .appName("CS4371-AGNews-Training")
-    .getOrCreate()
+        SparkSession.builder
+        .appName("CS4371-AGNews-Training")
+        .getOrCreate()
 
-)
+    )
 
-spark.sparkContext.setLogLevel("ERROR")
+    spark.sparkContext.setLogLevel("ERROR")
 
-try:
+    try:
 
-    # loading training articles
+        # loading training articles
 
-    df = spark.read.parquet(args.data)
+        df = spark.read.parquet(args.data)
 
-    print("Training articles:", df.count())
+        print("Training articles:", df.count())
 
-    # splitting text into lowercase words
+        # splitting text into lowercase words
 
-    tokenizer = RegexTokenizer(
+        tokenizer = RegexTokenizer(
 
-        inputCol="text",
-        outputCol="words",
-        pattern="\\W+",
-        toLowercase=True
+            inputCol="text",
+            outputCol="words",
+            pattern="\\W+",
+            toLowercase=True
    
-    )
+        )
 
-    # removing common English words
+        # removing common English words
 
-    remover = StopWordsRemover(
+        remover = StopWordsRemover(
 
-        inputCol="words",
-        outputCol="filtered_words"
+            inputCol="words",
+            outputCol="filtered_words"
     
-    )
+        )
 
-    # converting words into vectors
+        # converting words into vectors
 
-    hashing_tf = HashingTF(
+        hashing_tf = HashingTF(
 
-        inputCol="filtered_words",
-        outputCol="tf",
-        numFeatures=4096
+            inputCol="filtered_words",
+            outputCol="tf",
+            numFeatures=4096
     
-    )
+        )
 
-    # calculating TF-IDF
+        # calculating TF-IDF
 
-    idf = IDF(
+        idf = IDF(
 
-        inputCol="tf",
-        outputCol="features"
+            inputCol="tf",
+            outputCol="features"
    
-    )
+        )
 
-    # training logistic regression model
+        # training logistic regression model
 
-    lr = LogisticRegression(
+        lr = LogisticRegression(
 
-        featuresCol="features",
-        labelCol="label",
-        maxIter=20,
-        regParam=0.1,
-        family="multinomial"
+            featuresCol="features",
+            labelCol="label",
+            maxIter=20,
+            regParam=0.1,
+            family="multinomial"
     
-    )
+        )
 
-    # one MLlib pipeline
+        # one MLlib pipeline
 
-    pipeline = Pipeline(
+        pipeline = Pipeline(
 
-        stages=[tokenizer, remover, hashing_tf, idf, lr]
+            stages=[tokenizer, remover, hashing_tf, idf, lr]
     
-    )
+        )
 
-    print("Starting model training...")
+        print("Starting model training...")
 
-    model = pipeline.fit(df)
+        model = pipeline.fit(df)
 
-    print("Model training completed!")
+        print("Model training completed!")
 
-    # saving the fittted pipeline
+        # saving the fittted pipeline
 
-    model.write().overwrite().save(args.model)
+        writer = model.write()
+        if args.overwrite:
+            writer = writer.overwrite()
+        writer.save(args.model)
 
-    print("Model saved to:", args.model)
+        print("Model saved to:", args.model)
 
-finally:
-    spark.stop()
+    finally:
+        spark.stop()
+
+
+if __name__ == "__main__":
+    main()
