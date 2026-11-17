@@ -22,6 +22,7 @@ sudo apt-get install -y openjdk-17-jre-headless python3-venv
 python3 -m venv .venv-part2
 source .venv-part2/bin/activate
 python -m pip install -r "PART 2 - Model Training/requirements.txt"
+export SETUPTOOLS_USE_DISTUTILS=local
 export SPARK_HOME="$(python -c 'import os, pyspark; print(os.path.dirname(pyspark.__file__))')"
 export PYSPARK_PYTHON="$(command -v python)"
 export PYSPARK_DRIVER_PYTHON="$PYSPARK_PYTHON"
@@ -51,6 +52,16 @@ Kafka and topic1 must already exist and be reachable. Change `BROKERS` if Kafka 
 on another VM; its advertised broker addresses must also be reachable from this VM.
 Dependency installation and the initial connector resolution require outbound Internet.
 The supplied commands assume your existing plaintext Kafka connection.
+
+If an earlier installation reports missing `distutils` on Python 3.12 or that
+PyArrow requires NumPy 2, install the updated requirements above: they include
+Setuptools and pin PyArrow to a NumPy 1.x-compatible release. Do not upgrade NumPy
+to 2 just to satisfy a newer Arrow release in this Spark 3.5 environment.
+Run `java -version` and ensure Java 17 is selected; installing Java 17 does not
+necessarily change an existing Java 21/25 default. After selecting Java 17 with
+`sudo update-alternatives --config java`, rerun the `JAVA_HOME` export above.
+The Cloud Shell terminal is separate from your Compute Engine VM; SSH to the VM
+where Kafka runs before following this guide if that is your intended deployment.
 
 ## 2.1 AG News counts
 

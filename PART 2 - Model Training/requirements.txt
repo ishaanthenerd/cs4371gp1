@@ -1,4 +1,9 @@
 # Matches sparkVersion in models/ag_news_classifier/metadata/part-00000.
 pyspark==3.5.8
-numpy>=1.24,<2
-datasets>=3,<4
+# Python 3.12 no longer bundles distutils; Spark 3.5 imports it.
+setuptools==75.8.2
+# Keep Arrow compatible with Spark 3.5's NumPy 1.x environment.
+numpy==1.26.4
+pyarrow==18.1.0
+pandas==2.2.3
+datasets==3.6.0
