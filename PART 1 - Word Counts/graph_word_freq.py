@@ -21,7 +21,12 @@ consumer = KafkaConsumer(
     value_deserializer = UTF8Deserializer()
 )
 
-es = Elasticsearch("http://localhost:9200")
+ES_PASSWORD = os.getenv('ES_PASSWORD')
+es = Elasticsearch(
+    "https://localhost:9200",
+    ca_certs="/etc/elasticsearch/certs/http_ca.crt",
+    basic_auth=("elastic", ES_PASSWORD)
+)
 client = Kibana("http://localhost:5601")
 INDEX = "converted-data"
 MAX_WORDS = 10
