@@ -36,7 +36,6 @@ client = Kibana(
     basic_auth=("elastic", ES_PASSWORD)
 )
 INDEX = "converted-data"
-MAX_WORDS = 10
 
 def convert_dict(word_counts, index=INDEX):
     if not es.indices.exists(index=index):
@@ -120,13 +119,8 @@ try:
             j = message.value
             print(f"Received: {j}")
             word_counts = json.loads(j)
-            word_counts = dict(
-                sorted(
-                    word_counts.items(),
-                    key=lambda x: x[1],
-                    reverse=True
-                )[:MAX_WORDS]
-            )
+            # Kibana filters for first 10 counts automatically
+            # no need to filter word_counts
             convert_dict(word_counts)
             if not chart_created:
                 create_kibana_bar_plot()
